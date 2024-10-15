@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:title="My Location"
+        android:id="@+id/myLocationFragment"
+        android:icon="@drawable/ic_my_location"/>
+
+    <item android:title="BLE"
+        android:id="@+id/bleFragment"
+        android:icon="@drawable/ic_bluetooth"/>
+</menu>
