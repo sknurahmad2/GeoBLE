@@ -70,7 +70,7 @@ class BleFragment : Fragment(R.layout.fragment_ble) {
 
         // Scan button click listener
         scanButton.setOnClickListener {
-            checkBluetoothAndLocationStatus() 
+            checkBluetoothAndLocationStatus()
         }
 
         // Device selection listener
