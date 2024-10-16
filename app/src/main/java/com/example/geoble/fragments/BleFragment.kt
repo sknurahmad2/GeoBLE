@@ -33,6 +33,9 @@ class BleFragment : Fragment(R.layout.fragment_ble) {
     private lateinit var adapter: ArrayAdapter<String>
     private var selectedDevice: BluetoothDevice? = null
 
+    private val deviceMap = mutableMapOf<String, Long>()
+    private val SCAN_PERIOD: Long = 10000 // 10 seconds, adjust as needed
+
     companion object {
         private const val REQUEST_BLUETOOTH_PERMISSIONS = 3
         private const val REQUEST_ENABLE_BT = 1
@@ -71,7 +74,15 @@ class BleFragment : Fragment(R.layout.fragment_ble) {
         // Scan button click listener
         scanButton.setOnClickListener {
             checkBluetoothAndLocationStatus()
+//            startBleScan()
+            // Rescan and update list periodically
+            listView.postDelayed({
+                stopBleScan()
+                removeOldDevices()
+                startBleScan()
+            }, SCAN_PERIOD)
         }
+
 
         // Device selection listener
         listView.setOnItemClickListener { _, _, position, _ ->
@@ -155,13 +166,13 @@ class BleFragment : Fragment(R.layout.fragment_ble) {
         if (permissionsToRequest.isNotEmpty()) {
             ActivityCompat.requestPermissions(requireActivity(), permissionsToRequest.toTypedArray(), REQUEST_BLUETOOTH_PERMISSIONS)
         } else {
+            Toast.makeText(requireContext(), "Scanning for BLE devices...", Toast.LENGTH_SHORT).show()
             startBleScan()
         }
     }
 
     private fun startBleScan() {
         bluetoothLeScanner = bluetoothAdapter.bluetoothLeScanner
-        Toast.makeText(requireContext(), "Scanning for BLE devices...", Toast.LENGTH_SHORT).show()
 
         if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
             return
@@ -183,7 +194,10 @@ class BleFragment : Fragment(R.layout.fragment_ble) {
             val deviceAddress = device.address
             val deviceInfo = "$deviceName ($deviceAddress)"
 
-            // Add device to the list if it's not already present
+            // Update the timestamp for the device
+            deviceMap[deviceInfo] = System.currentTimeMillis()
+
+            // Add the device to the list if not already present
             if (!deviceList.contains(deviceInfo)) {
                 deviceList.add(deviceInfo)
                 adapter.notifyDataSetChanged()
@@ -194,6 +208,29 @@ class BleFragment : Fragment(R.layout.fragment_ble) {
             super.onScanFailed(errorCode)
             Log.e(TAG, "Scan failed with error code: $errorCode")
         }
+    }
+
+    private fun removeOldDevices() {
+        val currentTime = System.currentTimeMillis()
+        val iterator = deviceMap.entries.iterator()
+
+        while (iterator.hasNext()) {
+            val entry = iterator.next()
+            // If the device was last seen more than SCAN_PERIOD milliseconds ago, remove it
+            if (currentTime - entry.value > SCAN_PERIOD) {
+                deviceList.remove(entry.key)
+                iterator.remove() // Remove from the map as well
+            }
+        }
+        adapter.notifyDataSetChanged()
+    }
+
+    private fun stopBleScan() {
+        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+            return
+        }
+        bluetoothLeScanner.stopScan(leScanCallback)
+        Toast.makeText(requireContext(), "Scan stopped", Toast.LENGTH_SHORT).show()
     }
 
     private fun connectToSelectedDevice() {
