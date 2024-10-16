@@ -10,11 +10,11 @@ import android.location.Location
 import android.os.Build
 import android.os.IBinder
 import android.os.Looper
-import com.example.geoble.R
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.gms.location.*
+import com.example.geoble.R
 
 class LocationService : Service() {
 
@@ -50,11 +50,10 @@ class LocationService : Service() {
     private fun startLocationUpdates() {
         val locationRequest = LocationRequest.create().apply {
             interval = 10000 // 10 seconds
-            fastestInterval = 5000 // 5 seconds
+            fastestInterval = 5000
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         }
-
-        // Check for permissions before requesting location updates
+        // Check for location permissions
         if (ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -63,7 +62,8 @@ class LocationService : Service() {
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            // Permissions not granted; return early
+            // Permission not granted, stop the service or handle gracefully
+            stopSelf() // Stops the service if permission is not granted
             return
         }
 
@@ -73,12 +73,9 @@ class LocationService : Service() {
 
     // Function to broadcast location data to the UI
     private fun sendLocationDataToUI(location: Location) {
-        val intent = Intent("LocationUpdates").apply {
-            putExtra("latitude", location.latitude)
-            putExtra("longitude", location.longitude)
-        }
-
-        // Use LocalBroadcastManager for local broadcasts
+        val intent = Intent("LocationUpdates")
+        intent.putExtra("latitude", location.latitude)
+        intent.putExtra("longitude", location.longitude)
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
     }
 
@@ -90,7 +87,7 @@ class LocationService : Service() {
             val channel = NotificationChannel(
                 channelId,
                 channelName,
-                NotificationManager.IMPORTANCE_DEFAULT // Change this based on your requirements
+                NotificationManager.IMPORTANCE_LOW
             )
             val manager = getSystemService(NotificationManager::class.java)
             manager?.createNotificationChannel(channel)
@@ -101,8 +98,6 @@ class LocationService : Service() {
             .setContentTitle("Tracking Location")
             .setContentText("Waiting for location...")
             .setSmallIcon(R.drawable.ic_my_location)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .setOngoing(true)
             .build()
 
         startForeground(1, notification) // ID of 1 is just an example
@@ -114,9 +109,7 @@ class LocationService : Service() {
         val notification = NotificationCompat.Builder(this, channelId)
             .setContentTitle("Current Location")
             .setContentText("Latitude: $latitude, Longitude: $longitude")
-            .setSmallIcon(R.drawable.ic_my_location) // Ensure you have a suitable icon
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .setOngoing(true)
+            .setSmallIcon(R.drawable.ic_my_location)
             .build()
 
         notificationManager?.notify(1, notification) // Updates the existing notification
