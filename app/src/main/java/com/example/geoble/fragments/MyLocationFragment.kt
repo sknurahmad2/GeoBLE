@@ -17,6 +17,7 @@ import androidx.fragment.app.Fragment
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.geoble.R
 import com.example.geoble.service.LocationService
+import com.google.android.material.progressindicator.LinearProgressIndicator
 
 class MyLocationFragment : Fragment(R.layout.fragment_my_location) {
 
@@ -24,6 +25,7 @@ class MyLocationFragment : Fragment(R.layout.fragment_my_location) {
     private var isServiceStarted = false
     private lateinit var latitudeTextView: TextView
     private lateinit var longitudeTextView: TextView
+    private lateinit var loadingBar: LinearProgressIndicator
 
     // BroadcastReceiver to receive location updates from the service
     private val locationReceiver = object : BroadcastReceiver() {
@@ -32,6 +34,7 @@ class MyLocationFragment : Fragment(R.layout.fragment_my_location) {
             val longitude = intent?.getDoubleExtra("longitude", 0.0)
 
             // Update the UI with received location data
+            loadingBar.visibility = View.INVISIBLE
             latitudeTextView.text = "Latitude: $latitude"
             longitudeTextView.text = "Longitude: $longitude"
         }
@@ -50,6 +53,7 @@ class MyLocationFragment : Fragment(R.layout.fragment_my_location) {
         // Initialize TextViews for updating location
         latitudeTextView = view.findViewById(R.id.latitudeTextView)
         longitudeTextView = view.findViewById(R.id.longitudeTextView)
+        loadingBar = view.findViewById(R.id.linearProgressIndicator)
 
         // Request permissions if needed
         if (!checkPermissions()) {

@@ -15,7 +15,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         //Change App bar color
-        supportActionBar!!.setBackgroundDrawable(ColorDrawable(Color.parseColor("#9966CC")))
+        //supportActionBar!!.setBackgroundDrawable(ColorDrawable(Color.parseColor("#9966CC")))
 
         val bottomNavigation = findViewById<BottomNavigationView>(R.id.bottomNavigationView)
         val navController = Navigation.findNavController(this, R.id.host_fragment)
