@@ -72,15 +72,15 @@ class BleFragment : Fragment(R.layout.fragment_ble) {
         }
 
         // Scan button click listener
-        scanButton.setOnClickListener {
-            checkBluetoothAndLocationStatus()
-            // Rescan and update list periodically
-            listView.postDelayed({
-                stopBleScan()
-                removeOldDevices()
-                startBleScan()
-            }, SCAN_PERIOD)
-        }
+//        scanButton.setOnClickListener {
+//            checkBluetoothAndLocationStatus()
+//            // Rescan and update list periodically
+//            listView.postDelayed({
+//                stopBleScan()
+//                removeOldDevices()
+//                startBleScan()
+//            }, SCAN_PERIOD)
+//        }
 
         // Device selection listener
         listView.setOnItemClickListener { _, _, position, _ ->
