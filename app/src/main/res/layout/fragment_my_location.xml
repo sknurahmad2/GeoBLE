@@ -22,14 +22,14 @@
             android:gravity="center">
 
             <TextView
-                android:id="@+id/tvLatitude"
+                android:id="@+id/latitudeTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Latitude : "
                 android:textSize="24sp"/>
 
             <TextView
-                android:id="@+id/tvLongitude"
+                android:id="@+id/longitudeTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Longitude : "
@@ -37,16 +37,16 @@
 
         </LinearLayout>
 
-        <Button
-            android:id="@+id/btn_my_location"
-            android:layout_width="150dp"
-            android:layout_height="wrap_content"
-            android:text="My Location"
-            android:textSize="18sp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:layout_margin="16dp"/>
+<!--        <Button-->
+<!--            android:id="@+id/btn_my_location"-->
+<!--            android:layout_width="150dp"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="My Location"-->
+<!--            android:textSize="18sp"-->
+<!--            app:layout_constraintBottom_toBottomOf="parent"-->
+<!--            app:layout_constraintStart_toStartOf="parent"-->
+<!--            app:layout_constraintEnd_toEndOf="parent"-->
+<!--            android:layout_margin="16dp"/>-->
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

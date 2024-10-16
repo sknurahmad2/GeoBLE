@@ -74,7 +74,6 @@ class BleFragment : Fragment(R.layout.fragment_ble) {
         // Scan button click listener
         scanButton.setOnClickListener {
             checkBluetoothAndLocationStatus()
-//            startBleScan()
             // Rescan and update list periodically
             listView.postDelayed({
                 stopBleScan()
@@ -83,17 +82,28 @@ class BleFragment : Fragment(R.layout.fragment_ble) {
             }, SCAN_PERIOD)
         }
 
-
         // Device selection listener
         listView.setOnItemClickListener { _, _, position, _ ->
             val deviceInfo = deviceList[position]
             selectedDevice = bluetoothAdapter.getRemoteDevice(deviceInfo.substringAfter("(").substringBefore(")"))
-            if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(requireContext(), "Bluetooth permissions not granted", Toast.LENGTH_SHORT).show()
-            }
             selectedDeviceLabel.text = "Selected Device: ${selectedDevice?.name ?: "Unknown"}"
             Toast.makeText(requireContext(), "Selected: ${selectedDevice?.name ?: "Unknown"}", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    override fun onPause() {
+        stopBleScan() // Stop the scan if the fragment is no longer visible
+        super.onPause()
+    }
+
+    override fun onDestroyView() {
+        stopBleScan() // Also ensure to stop when the view is destroyed
+        super.onDestroyView()
+    }
+
+    override fun onResume() {
+        checkBluetoothAndLocationStatus() // Check the Bluetooth and location status when resuming
+        super.onResume()
     }
 
     // Check if Bluetooth and Location are enabled
@@ -122,28 +132,31 @@ class BleFragment : Fragment(R.layout.fragment_ble) {
     // Handle the result of Bluetooth and Location enable requests
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_ENABLE_BT) {
-            if (bluetoothAdapter.isEnabled) {
-                // Bluetooth is now enabled, check location
-                if (!isLocationEnabled()) {
-                    // Location is still disabled, request to enable it
-                    val locationSettingsIntent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
-                    startActivityForResult(locationSettingsIntent, REQUEST_LOCATION_SETTINGS)
+        when (requestCode) {
+            REQUEST_ENABLE_BT -> {
+                if (bluetoothAdapter.isEnabled) {
+                    // Bluetooth is now enabled, check location
+                    if (!isLocationEnabled()) {
+                        // Location is still disabled, request to enable it
+                        val locationSettingsIntent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                        startActivityForResult(locationSettingsIntent, REQUEST_LOCATION_SETTINGS)
+                    } else {
+                        // Both Bluetooth and Location are enabled, start BLE scan
+                        checkPermissionsAndStartScan()
+                    }
                 } else {
-                    // Both Bluetooth and Location are enabled, start BLE scan
-                    checkPermissionsAndStartScan()
+                    // Bluetooth not enabled
+                    Toast.makeText(requireContext(), "Bluetooth not enabled", Toast.LENGTH_SHORT).show()
                 }
-            } else {
-                // Bluetooth not enabled
-                Toast.makeText(requireContext(), "Bluetooth not enabled", Toast.LENGTH_SHORT).show()
             }
-        } else if (requestCode == REQUEST_LOCATION_SETTINGS) {
-            if (isLocationEnabled()) {
-                // Location is enabled, proceed with BLE scan
-                checkPermissionsAndStartScan()
-            } else {
-                // Location still not enabled
-                Toast.makeText(requireContext(), "Location not enabled", Toast.LENGTH_SHORT).show()
+            REQUEST_LOCATION_SETTINGS -> {
+                if (isLocationEnabled()) {
+                    // Location is enabled, proceed with BLE scan
+                    checkPermissionsAndStartScan()
+                } else {
+                    // Location still not enabled
+                    Toast.makeText(requireContext(), "Location not enabled", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
@@ -230,7 +243,6 @@ class BleFragment : Fragment(R.layout.fragment_ble) {
             return
         }
         bluetoothLeScanner.stopScan(leScanCallback)
-        Toast.makeText(requireContext(), "Scan stopped", Toast.LENGTH_SHORT).show()
     }
 
     private fun connectToSelectedDevice() {
@@ -250,4 +262,19 @@ class BleFragment : Fragment(R.layout.fragment_ble) {
             Toast.makeText(requireContext(), "No device selected", Toast.LENGTH_SHORT).show()
         }
     }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_BLUETOOTH_PERMISSIONS) {
+            // Check if permissions were granted
+            if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
+                // Permissions granted, start scanning
+                startBleScan()
+            } else {
+                Toast.makeText(requireContext(), "Permissions not granted", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+
 }
